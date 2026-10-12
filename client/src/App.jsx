@@ -5,6 +5,8 @@ import PaginaPendiente from './components/comunes/PaginaPendiente';
 import AppLayout from './layouts/AppLayout';
 import LoginPage from './pages/LoginPage';
 import MasPage from './pages/MasPage';
+import InventarioPage from './pages/InventarioPage';
+import ProductoDetallePage from './pages/ProductoDetallePage';
 
 // "/" es el Dashboard para admin; el ayudante va directo a Ventas
 function Inicio() {
@@ -24,7 +26,8 @@ export default function App() {
           <Route path="ventas" element={<PaginaPendiente titulo="Ventas" />} />
           <Route path="pedidos" element={<PaginaPendiente titulo="Pedidos" />} />
           <Route path="clientes" element={<PaginaPendiente titulo="Clientes" />} />
-          <Route path="inventario" element={<PaginaPendiente titulo="Inventario" />} />
+          <Route path="inventario" element={<InventarioPage />} />
+          <Route path="inventario/:id" element={<ProductoDetallePage />} />
           <Route path="mas" element={<MasPage />} />
 
           {/* Solo admin */}
