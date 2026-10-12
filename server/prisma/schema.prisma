@@ -45,31 +45,31 @@ enum TipoMovimientoCaja {
 model Usuario {
   id           Int        @id @default(autoincrement())
   nombre       String
-  email        String     @unique
+  username     String     @unique
   passwordHash String
   rol          RolUsuario @default(ayudante)
   activo       Boolean    @default(true)
   creadoEn     DateTime   @default(now())
 
-  ventas      Venta[]
-  compras     Compra[]
-  auditorias  Auditoria[]
+  ventas     Venta[]
+  compras    Compra[]
+  auditorias Auditoria[]
 }
 
 model Configuracion {
-  id           Int      @id @default(autoincrement())
-  clave        String   @unique   // ej: "costo_empaque_por_paquete"
-  valor        String
-  descripcion  String?
+  id            Int      @id @default(autoincrement())
+  clave         String   @unique // ej: "costo_empaque_por_paquete"
+  valor         String
+  descripcion   String?
   actualizadoEn DateTime @updatedAt
 }
 
 model Auditoria {
   id           Int      @id @default(autoincrement())
   usuarioId    Int?
-  entidad      String            // ej: "Venta", "Producto"
+  entidad      String // ej: "Venta", "Producto"
   entidadId    Int
-  accion       String            // ej: "crear", "editar", "anular"
+  accion       String // ej: "crear", "editar", "anular"
   datosAntes   Json?
   datosDespues Json?
   fecha        DateTime @default(now())
@@ -87,10 +87,13 @@ model Auditoria {
 model Cliente {
   id             Int      @id @default(autoincrement())
   nombre         String
+  apellido       String?
   usuarioTiktok  String?  @unique
-  telefono       String?
+  celular        String?
   dni            String?
+  departamento   String?
   ciudad         String?
+  provincia      String?
   agenciaDestino String?
   notas          String?
   activo         Boolean  @default(true)
@@ -131,11 +134,12 @@ model Producto {
 }
 
 model Proveedor {
-  id       Int      @id @default(autoincrement())
-  nombre   String
-  contacto String?
-  notas    String?
-  activo   Boolean  @default(true)
+  id        Int     @id @default(autoincrement())
+  nombre    String
+  celular   String?
+  direccion String?
+  notas     String?
+  activo    Boolean @default(true)
 
   compras Compra[]
 }
@@ -147,7 +151,7 @@ model Proveedor {
 model Compra {
   id                Int      @id @default(autoincrement())
   proveedorId       Int?
-  cuentaId          Int?               // cuenta de la que salió el dinero
+  cuentaId          Int? // cuenta de la que salió el dinero
   creadoPorId       Int?
   fecha             DateTime @default(now())
   gastosAdicionales Decimal  @default(0) @db.Decimal(12, 2)
@@ -167,12 +171,12 @@ model Compra {
 }
 
 model CompraItem {
-  id                  Int     @id @default(autoincrement())
-  compraId            Int
-  productoId          Int
-  cantidad            Int
-  costoUnitario       Decimal @db.Decimal(12, 4)  // precio pagado
-  costoUnitarioFinal  Decimal @db.Decimal(12, 4)  // incluye gastos adicionales prorrateados
+  id                 Int     @id @default(autoincrement())
+  compraId           Int
+  productoId         Int
+  cantidad           Int
+  costoUnitario      Decimal @db.Decimal(12, 4) // precio pagado
+  costoUnitarioFinal Decimal @db.Decimal(12, 4) // incluye gastos adicionales prorrateados
 
   compra   Compra   @relation(fields: [compraId], references: [id], onDelete: Cascade)
   producto Producto @relation(fields: [productoId], references: [id])
@@ -205,16 +209,16 @@ model Pedido {
 }
 
 model Venta {
-  id             Int       @id @default(autoincrement())
-  clienteId      Int
-  pedidoId       Int?
-  cuentaId       Int?                      // cuenta donde entró el pago
-  creadoPorId    Int?
-  fecha          DateTime  @default(now())
-  montoPagado    Decimal   @db.Decimal(12, 2)  // puede ser 0 (premio, regalo, combo)
-  notas          String?
-  anulada        Boolean   @default(false)
-  anuladaEn      DateTime?
+  id              Int       @id @default(autoincrement())
+  clienteId       Int
+  pedidoId        Int?
+  cuentaId        Int? // cuenta donde entró el pago
+  creadoPorId     Int?
+  fecha           DateTime  @default(now())
+  montoPagado     Decimal   @db.Decimal(12, 2) // puede ser 0 (premio, regalo, combo)
+  notas           String?
+  anulada         Boolean   @default(false)
+  anuladaEn       DateTime?
   motivoAnulacion String?
 
   cliente   Cliente  @relation(fields: [clienteId], references: [id])
@@ -236,7 +240,7 @@ model VentaItem {
   ventaId               Int
   productoId            Int
   cantidad              Int
-  costoUnitarioSnapshot Decimal @db.Decimal(12, 4)  // costo del producto EN ESE MOMENTO
+  costoUnitarioSnapshot Decimal @db.Decimal(12, 4) // costo del producto EN ESE MOMENTO
 
   venta    Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
   producto Producto @relation(fields: [productoId], references: [id])
@@ -250,15 +254,15 @@ model VentaItem {
 // ============================================================
 
 model MovimientoStock {
-  id            Int                 @id @default(autoincrement())
-  productoId    Int
-  tipo          TipoMovimientoStock
-  cantidad      Int                 // positivo = entra, negativo = sale
-  stockResultante Int               // stock después del movimiento
-  ventaId       Int?
-  compraId      Int?
-  motivo        String?             // útil en ajustes (merma, daño, etc.)
-  fecha         DateTime            @default(now())
+  id              Int                 @id @default(autoincrement())
+  productoId      Int
+  tipo            TipoMovimientoStock
+  cantidad        Int // positivo = entra, negativo = sale
+  stockResultante Int // stock después del movimiento
+  ventaId         Int?
+  compraId        Int?
+  motivo          String? // útil en ajustes (merma, daño, etc.)
+  fecha           DateTime            @default(now())
 
   producto Producto @relation(fields: [productoId], references: [id])
   venta    Venta?   @relation(fields: [ventaId], references: [id])
@@ -273,22 +277,22 @@ model MovimientoStock {
 
 model Cuenta {
   id           Int     @id @default(autoincrement())
-  nombre       String  @unique        // Efectivo, Yape, Banco...
+  nombre       String  @unique // Efectivo, Yape, Banco...
   saldoInicial Decimal @default(0) @db.Decimal(12, 2)
   activa       Boolean @default(true)
 
-  ventas              Venta[]
-  compras             Compra[]
-  movimientos         MovimientoCaja[] @relation("CuentaOrigen")
-  movimientosDestino  MovimientoCaja[] @relation("CuentaDestino")
+  ventas             Venta[]
+  compras            Compra[]
+  movimientos        MovimientoCaja[] @relation("CuentaOrigen")
+  movimientosDestino MovimientoCaja[] @relation("CuentaDestino")
 }
 
 model MovimientoCaja {
   id              Int                @id @default(autoincrement())
-  cuentaId        Int                // cuenta origen (o única)
-  cuentaDestinoId Int?               // solo en transferencias
+  cuentaId        Int // cuenta origen (o única)
+  cuentaDestinoId Int? // solo en transferencias
   tipo            TipoMovimientoCaja
-  monto           Decimal            @db.Decimal(12, 2)  // siempre positivo
+  monto           Decimal            @db.Decimal(12, 2) // siempre positivo
   categoria       String?
   descripcion     String?
   ventaId         Int?
