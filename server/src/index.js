@@ -2,7 +2,10 @@ import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { prisma } from './lib/prisma.js';
+import { ErrorHttp } from './lib/errores.js';
 import authRoutes from './modules/auth/auth.routes.js';
+import productosRoutes from './modules/productos/productos.routes.js';
+import categoriasRoutes from './modules/categorias/categorias.routes.js';
 
 const app = express();
 
@@ -19,9 +22,22 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/productos', productosRoutes);
+app.use('/api/categorias', categoriasRoutes);
 
-// Manejo de errores no controlados (Express 5 captura los errores de funciones async)
+// Rutas /api que no existen
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'Ruta no encontrada' });
+});
+
+// Manejador global de errores (Express 5 captura los errores de funciones async)
 app.use((err, req, res, next) => {
+  if (err instanceof ErrorHttp) {
+    return res.status(err.status).json({ error: err.message });
+  }
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'El cuerpo de la petición no es un JSON válido' });
+  }
   console.error(err);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
